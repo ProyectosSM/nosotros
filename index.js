@@ -1,6 +1,6 @@
-const express = require('express');
-const path = require('path');
-const app = express();
+const SUPABASE_URL = 'https://iomkqhlwqisymmdujhol.supabase.co/rest/v1/'; // (Tu URL de Data API)
+const SUPABASE_KEY = 'sb_publishable_HmLROH5i9GLGWWWKrBPStw_Hzh69upn'; // (Tu Publishable key que ves en la imagen)
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());

@@ -10,7 +10,7 @@ app.use(express.json());
 const publicDir = path.join(process.cwd(), 'public');
 app.use(express.static(publicDir));
 
-const SUPABASE_URL = 'https://iomkqhlwqisymmdujhol.supabase.co';
+const SUPABASE_URL = 'https://iomkqhlwqisymmdujhol.supabase.co/rest/v1/';
 const SUPABASE_KEY = 'sb_publishable_HmLROH5i9GLGWWWKrBPStw_Hzh69upn';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 

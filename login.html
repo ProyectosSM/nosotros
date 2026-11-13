@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Escrutinio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Librería de Supabase para Frontend -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-light d-flex align-items-center py-4" style="min-height: 100vh;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card shadow-sm p-4 bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold mb-0" id="tituloForm">Acceso Fiscales</h4>
+                        <img src="logo_nosotros.png" alt="Logo" style="height: 50px;" onerror="this.style.display='none'">
+                    </div>
+
+                    <!-- FORMULARIO DE LOGIN -->
+                    <form id="formLogin" onsubmit="realizarLogin(event)">
+                        <div class="mb-3">
+                            <label class="form-label">Usuario</label>
+                            <input type="text" id="loginUsuario" class="form-control" required autofocus>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contraseña</label>
+                            <input type="password" id="loginPassword" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mb-2">Ingresar al Sistema</button>
+                        <button type="button" class="btn btn-outline-secondary w-100 btn-sm" onclick="cambiarVista('registro')">¿No tienes cuenta? Regístrate aquí</button>
+                    </form>
+
+                    <!-- FORMULARIO DE REGISTRO (Oculto por defecto) -->
+                    <form id="formRegistro" style="display: none;" onsubmit="realizarRegistro(event)">
+                        <div class="mb-2">
+                            <label class="form-label">Nombre Completo del Fiscal</label>
+                            <input type="text" id="regNombre" class="form-control" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Número de Mesa</label>
+                            <input type="text" id="regMesa" class="form-control" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Usuario</label>
+                            <input type="text" id="regUsuario" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contraseña</label>
+                            <input type="password" id="regPassword" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 mb-2">Crear mi Cuenta</button>
+                        <button type="button" class="btn btn-outline-secondary w-100 btn-sm" onclick="cambiarVista('login')">Volver al Login</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://iomkqhlwqisymmdujhol.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_HmLROH5i9GLGWWWKrBPStw_Hzh69upn';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function cambiarVista(vista) {
+            if (vista === 'registro') {
+                document.getElementById('formLogin').style.display = 'none';
+                document.getElementById('formRegistro').style.display = 'block';
+                document.getElementById('tituloForm').textContent = 'Registro de Fiscal';
+            } else {
+                document.getElementById('formRegistro').style.display = 'none';
+                document.getElementById('formLogin').style.display = 'block';
+                document.getElementById('tituloForm').textContent = 'Acceso Fiscales';
+            }
+        }
+
+        async function realizarLogin(e) {
+            e.preventDefault();
+            const usuario = document.getElementById('loginUsuario').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const { data, error } = await supabase
+                .from('usuarios')
+                .select('*')
+                .eq('usuario', usuario)
+                .eq('password', password)
+                .single();
+
+            if (error || !data) {
+                alert('Usuario o contraseña incorrectos.');
+                return;
+            }
+
+            if (data.rol === 'admin') {
+                window.location.href = '/admin.html';
+            } else {
+                window.location.href = `/app.html?fiscal=${encodeURIComponent(data.nombre_fiscal)}&mesa=${encodeURIComponent(data.numero_mesa)}`;
+            }
+        }
+
+        async function realizarRegistro(e) {
+            e.preventDefault();
+            const nombre_fiscal = document.getElementById('regNombre').value;
+            const numero_mesa = document.getElementById('regMesa').value;
+            const usuario = document.getElementById('regUsuario').value;
+            const password = document.getElementById('regPassword').value;
+
+            const { error } = await supabase
+                .from('usuarios')
+                .insert([{ usuario, password, nombre_fiscal, numero_mesa, rol: 'fiscal' }]);
+
+            if (error) {
+                alert('Ese nombre de usuario ya existe o hubo un error.');
+                return;
+            }
+
+            alert('¡Registro exitoso! Ya puedes iniciar sesión.');
+            cambiarVista('login');
+        }
+    </script>
+</body>
+</html>

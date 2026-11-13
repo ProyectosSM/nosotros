@@ -5,42 +5,47 @@ const { createClient } = require('@supabase/supabase-js');
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
 
-// --- CREDENCIALES DE SUPABASE ---
+// Usar process.cwd() garantiza que Vercel encuentre la carpeta public
+const publicDir = path.join(process.cwd(), 'public');
+app.use(express.static(publicDir));
+
 const SUPABASE_URL = 'https://iomkqhlwqisymmdujhol.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_HmLROH5i9GLGWWWKrBPStw_Hzh69upn';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // 1. Login inteligente (Admin vs Fiscal)
 app.post('/login', async (req, res) => {
-    const { usuario, password } = req.body;
-    
-    const { data } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('usuario', usuario)
-        .eq('password', password)
-        .single();
+    try {
+        const { usuario, password } = req.body;
+        const { data, error } = await supabase
+            .from('usuarios')
+            .select('*')
+            .eq('usuario', usuario)
+            .eq('password', password)
+            .single();
 
-    if (data) {
+        if (error || !data) {
+            return res.send(`<script>alert('Usuario o contraseña incorrectos'); window.location.href='/';</script>`);
+        }
+
         if (data.rol === 'admin') {
             return res.redirect('/admin.html');
         }
+
         const params = new URLSearchParams({
             fiscal: data.nombre_fiscal,
             mesa: data.numero_mesa
         });
         res.redirect(`/app.html?${params.toString()}`);
-    } else {
-        res.send(`<script>alert('Usuario o contraseña incorrectos'); window.location.href='/';</script>`);
+    } catch (err) {
+        res.status(500).send('Error en el servidor: ' + err.message);
     }
 });
 
-// 2. Registro público para que cada fiscal cree su cuenta
+// 2. Registro público
 app.post('/registro', async (req, res) => {
     const { usuario, password, nombre_fiscal, numero_mesa } = req.body;
-
     const { error } = await supabase
         .from('usuarios')
         .insert([{ usuario, password, nombre_fiscal, numero_mesa, rol: 'fiscal' }]);
@@ -51,7 +56,7 @@ app.post('/registro', async (req, res) => {
     res.json({ ok: true });
 });
 
-// 3. Obtener todos los usuarios para el panel Admin
+// 3. Listar usuarios (Admin)
 app.get('/api/usuarios', async (req, res) => {
     const { data, error } = await supabase
         .from('usuarios')
@@ -62,7 +67,7 @@ app.get('/api/usuarios', async (req, res) => {
     res.json(data);
 });
 
-// 4. Eliminar un usuario desde el panel Admin
+// 4. Eliminar usuario (Admin)
 app.delete('/api/usuarios/:id', async (req, res) => {
     const { error } = await supabase
         .from('usuarios')
@@ -73,7 +78,7 @@ app.delete('/api/usuarios/:id', async (req, res) => {
     res.json({ ok: true });
 });
 
-// 5. Guardar reporte de votación
+// 5. Guardar reporte
 app.post('/guardar-reporte', async (req, res) => {
     const { error } = await supabase
         .from('reportes_mesas')
@@ -84,21 +89,7 @@ app.post('/guardar-reporte', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+    res.sendFile(path.join(publicDir, 'login.html'));
 });
-
-const PORT = process.env.PORT || 3000;
-
-// Configuración para entorno local y Vercel (Serverless)
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log(`Servidor corriendo en puerto ${PORT}`);
-    });
-}
 
 module.exports = app;
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en puerto ${PORT}`);
-});

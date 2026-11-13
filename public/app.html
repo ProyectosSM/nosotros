@@ -89,6 +89,17 @@
     </div>
 
     <script>
+        // Autocompletar datos del usuario que inició sesión
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('fiscal')) {
+                document.getElementById('nombre_fiscal').value = urlParams.get('fiscal');
+            }
+            if (urlParams.has('mesa')) {
+                document.getElementById('numero_mesa').value = urlParams.get('mesa');
+            }
+        };
+
         function modificarContador(idCampo, cambio) {
             let input = document.getElementById(idCampo);
             let valorActual = parseInt(input.value) || 0;
@@ -98,21 +109,42 @@
             }
         }
 
-        function enviarWhatsApp() {
+        async function enviarWhatsApp() {
             let centro = document.getElementById('centro_votacion').value;
             let coordinador = document.getElementById('coordinador_centro').value;
             let abogado = document.getElementById('nombre_abogado').value;
             let informatico = document.getElementById('fiscal_informatico').value;
             let fiscal = document.getElementById('nombre_fiscal').value;
             let mesa = document.getElementById('numero_mesa').value;
-            let favor = document.getElementById('votos_favor').value;
-            let nulos = document.getElementById('votos_nulos').value;
+            let favor = parseInt(document.getElementById('votos_favor').value) || 0;
+            let nulos = parseInt(document.getElementById('votos_nulos').value) || 0;
 
             if(!centro || !mesa || !fiscal) {
                 alert('Por favor completa al menos el Centro de Votación, Número de Mesa y Nombre del Fiscal.');
                 return;
             }
 
+            // 1. Guardar respaldo en la Base de Datos (Supabase)
+            try {
+                await fetch('/guardar-reporte', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        centro_votacion: centro,
+                        coordinador_centro: coordinador,
+                        nombre_abogado: abogado,
+                        fiscal_informatico: informatico,
+                        nombre_fiscal: fiscal,
+                        numero_mesa: mesa,
+                        votos_favor: favor,
+                        votos_nulos: nulos
+                    })
+                });
+            } catch (e) {
+                console.error("Error guardando respaldo:", e);
+            }
+
+            // 2. Abrir WhatsApp con el reporte formateado
             let texto = `📊 *REPORTE OFICIAL DE MESA* 📊\n\n` +
                         `🏢 *Centro:* ${centro}\n` +
                         `🔢 *Mesa:* ${mesa}\n` +

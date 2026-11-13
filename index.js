@@ -8,8 +8,8 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --- PEGA AQUÍ TUS CREDENCIALES DE SUPABASE ---
-const SUPABASE_URL = 'TU_SUPABASE_URL_AQUI';
-const SUPABASE_KEY = 'TU_PUBLISHABLE_KEY_AQUI';
+const SUPABASE_URL = 'https://iomkqhlwqisymmdujhol.supabase.co/rest/v1/';
+const SUPABASE_KEY = 'sb_publishable_HmLROH5i9GLGWWWKrBPStw_Hzh69upn';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // 1. Login inteligente (Admin vs Fiscal)

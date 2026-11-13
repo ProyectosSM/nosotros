@@ -1,11 +1,3 @@
 {
-  "version": 2,
-  "routes": [
-    { "src": "/", "dest": "/public/login.html" },
-    { "src": "/login", "dest": "/index.js" },
-    { "src": "/registro", "dest": "/index.js" },
-    { "src": "/api/(.*)", "dest": "/index.js" },
-    { "src": "/guardar-reporte", "dest": "/index.js" },
-    { "src": "/(.*)", "dest": "/public/$1" }
-  ]
+  "cleanUrls": true
 }

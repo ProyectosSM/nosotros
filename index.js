@@ -1,4 +1,4 @@
-const express = require('express');
+onst express = require('express');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 
@@ -10,6 +10,7 @@ app.use(express.json());
 const publicDir = path.join(process.cwd(), 'public');
 app.use(express.static(publicDir));
 
+// URL limpia sin /rest/v1/
 const SUPABASE_URL = 'https://iomkqhlwqisymmdujhol.supabase.co/rest/v1/';
 const SUPABASE_KEY = 'sb_publishable_HmLROH5i9GLGWWWKrBPStw_Hzh69upn';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -92,4 +93,10 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(publicDir, 'login.html'));
 });
 
-module.exports = app;
+const PORT = process.env.PORT || 3000;
+
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`Servidor corriendo en puerto ${PORT}`);
+    });
+}
